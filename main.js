@@ -53,19 +53,20 @@ const onSuccess = (stream) => {
 
     // line style
     canvasCtx.lineWidth = 1
-    canvasCtx.strokeStyle = '#ffae57'
 
+    // Draw axis
+    canvasCtx.strokeStyle = '#ffae57'
     canvasCtx.beginPath()
     canvasCtx.moveTo(xMargin, yMargin)
     canvasCtx.lineTo(xMargin, height)
     canvasCtx.lineTo(xMargin + width, height)
     canvasCtx.stroke()
 
+    // Draw FFT
     canvasCtx.strokeStyle = '#c3a6ff'
     const sliceWidth = width / bufLen
     let x = xMargin
     let y = height * (1 - dataArray[0] / 256)
-
     canvasCtx.beginPath()
     canvasCtx.moveTo(x, y)
     x += sliceWidth
@@ -77,7 +78,7 @@ const onSuccess = (stream) => {
     canvasCtx.lineTo(canvas.width - xMargin, canvas.height - yMargin)
     canvasCtx.stroke()
 
-    // draw peaks
+    // Draw peaks
     if (peakIdx) {
       canvasCtx.strokeStyle = '#bae67e'
       peakIdx.forEach((idx) => {
@@ -90,8 +91,8 @@ const onSuccess = (stream) => {
     }
   }
 
+  // Constrain frequency to <3000 Hz
   const maxIdx = freq2idx(3000)
-  console.log(maxIdx)
 
   const loop = () => {
     if (!running) {
@@ -100,11 +101,16 @@ const onSuccess = (stream) => {
     requestAnimationFrame(loop)
     analyser.getByteFrequencyData(dataArray)
 
+    // Find indices of peaks
     const peakIdx = detectPeaks(dataArray, maxIdx, lag, thresh, influence)
 
+    // Draw if there are less than 20 peaks
+    // too many peaks probably indicate noisy/meaningless data
     if (peakIdx.length < 20) {
       draw(peakIdx)
+      // Convert indices to notes and deduplicate
       const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
+      // Update the HTML text
       chordsDiv.innerText = notes
     } else {
       draw()

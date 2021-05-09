@@ -40,7 +40,6 @@ button {
   background-color: var(--bg-widget);
   color: var(--orange);
   border: none;
-  /* padding: 0.3rem; */
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -54,11 +53,20 @@ input {
 }
 
 canvas {
-  width: 100%;
-  /*max-width: 300px;*/
+  max-width: 300px;
+  margin: auto;
 }
 
 .container {
   width: 70%;
   margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }
