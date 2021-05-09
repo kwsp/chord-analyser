@@ -122,9 +122,11 @@ const onSuccess = (stream) => {
 
 function toggleStartStop() {
   if (running) {
+    console.log('Toggle called running true')
     running = false
     toggleButton.innerText = 'start'
   } else {
+    console.log('Toggle called running false')
     running = true
     toggleButton.innerText = 'Stop'
 
@@ -149,7 +151,7 @@ window.addEventListener('keydown', handleKeyDown, false)
 
 function handleKeyDown(kev) {
   switch (kev.code) {
-    case 'Space':
+    case 'KeyA':
       toggleStartStop()
       break
   }

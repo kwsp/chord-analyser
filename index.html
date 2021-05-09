@@ -10,8 +10,11 @@
   <body>
     <div class="container">
       <div class="row">
-        <h1>Chord Analyser</h1>
+        <h1><a href="https://kwsp.github.io/chord-analyser/">Chord Analyser</a></h1>
       </div>
+
+        <p>Press "A" or the "start" button to toggle the chord analyser. Try to play a chord on the guitar or piano, pause the app right after and see how many notes it got right. All processing is done in the browser and no data is sent anywhere.</p>
+      <br>
 
       <div class="row">
         <div id="buttons">
@@ -41,7 +44,9 @@
           />
         </div>
       </div>
+
       <br />
+
       <div class="row">
         <canvas id="canvas" class="visualizer"></canvas>
       </div>
@@ -49,6 +54,12 @@
       <div class="row">
         <p id="chords"></p>
       </div>
+
+      <p>This app attempts to distinguish between the notes you are playing by 1. transforming the audio to the frequency domain via FFT, 2. detecting the peaks, 3. matching each peak to the closest note in the chromatic scale.</p>
+      <p>I've always wanted something like this to analyze the sounds I hear when I don't have my guitar with me (unfortunately I don't have perfect pitch), and I hacked this web app together in a weekend. It is not perfect - some notes might be off by a semitone, and strong overtones will be picked up. If you have ideas for improvement, please let me know.</p>
+
+      <a href="https://github.com/kwsp/chord-analyser/">Github</a>
+
     </div>
 
     <script src="utils.js"></script>
