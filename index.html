@@ -12,9 +12,10 @@
       <h1>Chord Analyser</h1>
       <div id="buttons">
         <button id="toggleOnOff">Start</button>
+        <label for="lag">Lag</label>
         <input id="lag" type="number" min="5" max="25" step="1" value="20"
         size="3"/ >
-        <label for="lag">Lag</label>
+        <label for="thresh">Thresh</label>
         <input
           id="thresh"
           type="number"
@@ -24,7 +25,7 @@
           value="3.5"
           size="3"
         />
-        <label for="thresh">Thresh</label>
+        <label for="influence">Influence</label>
         <input
           id="influence"
           type="number"
@@ -34,7 +35,6 @@
           value="0.5"
           size="3"
         />
-        <label for="influence">Influence</label>
       </div>
       <br />
       <canvas id="canvas" class="visualizer"></canvas>
