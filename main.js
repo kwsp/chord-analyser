@@ -4,7 +4,7 @@ const canvasCtx = canvas.getContext('2d')
 
 const chordsDiv = document.getElementById('chords')
 
-let running = false
+let running = false // global flag for audio on/off
 
 let lag = 11
 let thresh = 5
@@ -27,9 +27,6 @@ inpInfluence.addEventListener('change', (ev) => {
   influence = parseFloat(ev.target.value)
 })
 
-let ANALYSER // DEBUG
-let STREAM
-
 const onSuccess = (stream) => {
   const audioCtx = new AudioContext()
   const analyser = audioCtx.createAnalyser()
@@ -41,11 +38,8 @@ const onSuccess = (stream) => {
   const dataArray = new Uint8Array(analyser.frequencyBinCount)
 
   const Fs = audioCtx.sampleRate // audio sampling frequency
-  const Fres = Fs / fftSize / 2 // Frequency resolution
+  const Fres = Fs / fftSize // Frequency resolution
   const freq2idx = (freq) => Math.round(freq / Fres)
-
-  ANALYSER = analyser // DEBUG
-  STREAM = stream
 
   const draw = (peakIdx) => {
     const xMargin = 10
@@ -107,8 +101,8 @@ const onSuccess = (stream) => {
     analyser.getByteFrequencyData(dataArray)
 
     const peakIdx = detectPeaks(dataArray, maxIdx, lag, thresh, influence)
+
     if (peakIdx.length < 20) {
-      //chordsDiv.innerText = peakIdx
       draw(peakIdx)
       const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
       chordsDiv.innerText = notes
