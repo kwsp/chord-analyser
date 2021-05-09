@@ -68,6 +68,7 @@ function detectPeaks(
     stdFilter[i] = std_with_mean(_window, avgFilter[i])
   }
 
+  // For a contiguous peak find its center
   const peaks = []
   let peakBegin = 0
   let lastIdx = 0
