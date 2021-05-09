@@ -48,9 +48,11 @@ const onSuccess = (stream) => {
   STREAM = stream
 
   const draw = (peakIdx) => {
+    // background colour
     canvasCtx.fillStyle = '#2f3b54'
     canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
 
+    // line style
     canvasCtx.lineWidth = 1
     canvasCtx.strokeStyle = '#c3a6ff'
 
@@ -73,6 +75,7 @@ const onSuccess = (stream) => {
       canvasCtx.strokeStyle = '#bae67e'
       peakIdx.forEach((idx) => {
         let x = sliceWidth * idx
+        canvasCtx.beginPath()
         canvasCtx.moveTo(x, 0)
         canvasCtx.lineTo(x, canvas.height)
         canvasCtx.stroke()
