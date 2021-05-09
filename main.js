@@ -9,6 +9,7 @@ let running = false
 let lag = 11
 let thresh = 5
 let influence = 0.5
+const fftSize = 16384 // window size for fft
 
 const inpLag = document.getElementById('lag')
 inpLag.value = lag
@@ -26,12 +27,6 @@ inpInfluence.addEventListener('change', (ev) => {
   influence = parseFloat(ev.target.value)
 })
 
-const Fs = 44100 // audio sampling frequency
-const fftSize = 4096 // window size for fft
-const Fres = Fs / fftSize / 2
-
-const freq2idx = (freq) => freq / Fres
-
 let ANALYSER // DEBUG
 let STREAM
 
@@ -39,46 +34,70 @@ const onSuccess = (stream) => {
   const audioCtx = new AudioContext()
   const analyser = audioCtx.createAnalyser()
   analyser.fftSize = fftSize
+  analyser.minDecibels = -70
   const audioSrc = audioCtx.createMediaStreamSource(stream)
   audioSrc.connect(analyser)
   const bufLen = analyser.frequencyBinCount
   const dataArray = new Uint8Array(analyser.frequencyBinCount)
 
+  const Fs = audioCtx.sampleRate // audio sampling frequency
+  const Fres = Fs / fftSize / 2 // Frequency resolution
+  const freq2idx = (freq) => Math.round(freq / Fres)
+
   ANALYSER = analyser // DEBUG
   STREAM = stream
 
   const draw = (peakIdx) => {
+    const xMargin = 10
+    const yMargin = 10
+    let height = canvas.height - yMargin
+    let width = canvas.width - xMargin
+
+    // background colour
     canvasCtx.fillStyle = '#2f3b54'
     canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
 
+    // line style
     canvasCtx.lineWidth = 1
-    canvasCtx.strokeStyle = '#c3a6ff'
+    canvasCtx.strokeStyle = '#ffae57'
 
     canvasCtx.beginPath()
+    canvasCtx.moveTo(xMargin, yMargin)
+    canvasCtx.lineTo(xMargin, height)
+    canvasCtx.lineTo(xMargin + width, height)
+    canvasCtx.stroke()
 
-    const sliceWidth = canvas.width / bufLen
-    let x = 0
-    let y = canvas.height * (1 - dataArray[0] / 256)
+    canvasCtx.strokeStyle = '#c3a6ff'
+    const sliceWidth = width / bufLen
+    let x = xMargin
+    let y = height * (1 - dataArray[0] / 256)
+
+    canvasCtx.beginPath()
     canvasCtx.moveTo(x, y)
     x += sliceWidth
     for (let i = 0; i < bufLen; i++) {
-      y = canvas.height * (1 - dataArray[i] / 256)
+      y = height * (1 - dataArray[i] / 256)
       canvasCtx.lineTo(x, y)
       x += sliceWidth
     }
-    canvasCtx.lineTo(canvas.width, canvas.height)
+    canvasCtx.lineTo(canvas.width - xMargin, canvas.height - yMargin)
     canvasCtx.stroke()
 
+    // draw peaks
     if (peakIdx) {
-      canvasCtx.strokeStyle = 'green'
+      canvasCtx.strokeStyle = '#bae67e'
       peakIdx.forEach((idx) => {
-        let x = sliceWidth * idx
+        let x = xMargin + sliceWidth * idx
+        canvasCtx.beginPath()
         canvasCtx.moveTo(x, 0)
-        canvasCtx.lineTo(x, canvas.height)
+        canvasCtx.lineTo(x, 5)
         canvasCtx.stroke()
       })
     }
   }
+
+  const maxIdx = freq2idx(3000)
+  console.log(maxIdx)
 
   const loop = () => {
     if (!running) {
@@ -86,14 +105,12 @@ const onSuccess = (stream) => {
     }
     requestAnimationFrame(loop)
     analyser.getByteFrequencyData(dataArray)
-    const maxIdx = freq2idx(4000)
-    console.log(maxIdx)
 
     const peakIdx = detectPeaks(dataArray, maxIdx, lag, thresh, influence)
-    if (peakIdx.length < 15) {
+    if (peakIdx.length < 20) {
       //chordsDiv.innerText = peakIdx
       draw(peakIdx)
-      const notes = peakIdx.map((idx) => getNote(idx * Fres))
+      const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
       chordsDiv.innerText = notes
     } else {
       draw()

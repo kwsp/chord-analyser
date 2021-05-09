@@ -244,5 +244,3 @@ const getNote = (freq) => {
   let i = binarySearchNN(freq)
   return notes[i]
 }
-
-console.log(getNote(2000))
