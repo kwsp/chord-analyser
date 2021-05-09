@@ -70,7 +70,7 @@ const onSuccess = (stream) => {
     canvasCtx.stroke()
 
     if (peakIdx) {
-      canvasCtx.strokeStyle = 'green'
+      canvasCtx.strokeStyle = '#bae67e'
       peakIdx.forEach((idx) => {
         let x = sliceWidth * idx
         canvasCtx.moveTo(x, 0)
