@@ -2,6 +2,7 @@ const toggleButton = document.getElementById('toggleOnOff')
 const canvas = document.getElementById('canvas')
 const canvasCtx = canvas.getContext('2d')
 
+const chordRecognitionEl = document.getElementById('chord-recognition')
 const chordsDiv = document.getElementById('chords')
 
 let running = false // global flag for audio on/off
@@ -38,14 +39,15 @@ const onSuccess = (stream) => {
   const dataArray = new Uint8Array(analyser.frequencyBinCount)
 
   const Fs = audioCtx.sampleRate // audio sampling frequency
+  console.log(`Sampling frequency: ${Fs}Hz`)
   const Fres = Fs / fftSize // Frequency resolution
   const freq2idx = (freq) => Math.round(freq / Fres)
 
   const draw = (peakIdx) => {
     const xMargin = 10
     const yMargin = 10
-    let height = canvas.height - yMargin
-    let width = canvas.width - xMargin
+    const height = canvas.height - yMargin
+    const width = canvas.width - xMargin
 
     // background colour
     canvasCtx.fillStyle = '#2f3b54'
@@ -82,7 +84,7 @@ const onSuccess = (stream) => {
     if (peakIdx) {
       canvasCtx.strokeStyle = '#bae67e'
       peakIdx.forEach((idx) => {
-        let x = xMargin + sliceWidth * idx
+        const x = xMargin + sliceWidth * idx
         canvasCtx.beginPath()
         canvasCtx.moveTo(x, 0)
         canvasCtx.lineTo(x, 5)
@@ -91,8 +93,8 @@ const onSuccess = (stream) => {
     }
   }
 
-  // Constrain frequency to <3000 Hz
-  const maxIdx = freq2idx(3000)
+  // Constrain frequency to <550 Hz
+  const maxIdx = freq2idx(550)
 
   const loop = () => {
     if (!running) {
@@ -101,20 +103,26 @@ const onSuccess = (stream) => {
     requestAnimationFrame(loop)
     analyser.getByteFrequencyData(dataArray)
 
-    // Find indices of peaks
-    const peakIdx = detectPeaks(dataArray, maxIdx, lag, thresh, influence)
-
-    // Draw if there are less than 20 peaks
-    // too many peaks probably indicate noisy/meaningless data
-    if (peakIdx.length < 20) {
-      draw(peakIdx)
-      // Convert indices to notes and deduplicate
-      const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
-      // Update the HTML text
-      chordsDiv.innerText = notes
-    } else {
-      draw()
+    const chromaVector = findChromaVector(dataArray, Fs, fftSize)
+    if (chromaVector.reduce((prev, v) => prev + v) > 40) {
+      const matchedChord = bitMaskMatch(chromaVector)
+      chordRecognitionEl.innerText = `Chord: ${matchedChord}`
     }
+
+    // Find indices of peaks
+    const peakIdx = detectPeaks(
+      dataArray,
+      maxIdx,
+      lag,
+      thresh,
+      influence
+    ).slice(0, 7) // Limit to the bottom 7 peaks
+
+    draw(peakIdx)
+    // Convert indices to notes and deduplicate
+    const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
+    // Update the HTML text
+    chordsDiv.innerText = notes
   }
 
   requestAnimationFrame(loop)
