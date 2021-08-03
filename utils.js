@@ -148,9 +148,8 @@ function f(n) {
 const allCChords = {
   maj: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
   maj7: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
-  maj9: [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1],
-  min: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
-  min7: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+  m: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  m7: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
   7: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], // dominant 7th
   dim: [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
 }
@@ -196,7 +195,7 @@ function generateAllChords() {
 
   let root = 'C'
   for (const name of names) {
-    const chordName = root + name
+    const chordName = name === 'maj' ? root : root + name
     const bitMask = new Uint8Array(allCChords[name])
     const invertedMask = bitMask.map((v) => (v ? 0 : 1))
     const nNotes = bitMask.reduce((a, v) => (v ? a + 1 : a))
@@ -211,7 +210,7 @@ function generateAllChords() {
   for (let n = 1; n < notes.length; n++) {
     root = notes[n]
     for (const name of names) {
-      const chordName = root + name
+      const chordName = name === 'maj' ? root : root + name
       const bitMask = rightShift(allCChords[name], n)
       const invertedMask = bitMask.map((v) => (v ? 0 : 1))
       const nNotes = bitMask.reduce((a, v) => (v ? a + 1 : a))
@@ -234,6 +233,11 @@ const chordNames = Object.keys(allChords) // chordNames depends on allChords bei
 
 /**
  * @param C array Chroma vector
+ *
+ * TODO: currently we minimize delta for the inverted mask as per Stark et al.
+ * However, when playing a pair of notes such as E and G, which should match Em,
+ * a few chords are matched with delta = 0 (e.g. C7) since E and G are 0 in the inverted
+ * bit mask of C7 (any any chord with notes E and G).
  */
 function bitMaskMatch(C) {
   const delta = new Float32Array(chordNames.length)
@@ -249,13 +253,10 @@ function bitMaskMatch(C) {
     delta[i] = Math.sqrt(dotprod) / (12 - nNotes)
   }
 
-  if (delta === undefined) {
-    debugger
-  }
   const idx = argMin(delta)
   if (idx === 0) {
     console.log(delta)
-    debugger
+    //debugger
   }
   return chordNames[idx]
 }
