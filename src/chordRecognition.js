@@ -1,104 +1,3 @@
-function sum(arr) {
-  let res = arr[0]
-  for (let i = 1; i < arr.length; i++) {
-    res += arr[i]
-  }
-  return res
-}
-
-function mean(arr) {
-  return sum(arr) / arr.length
-}
-
-function max(arr) {
-  let res = arr[0]
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] > res) {
-      res = arr[i]
-    }
-  }
-  return res
-}
-
-function std(arr) {
-  const _mean = mean(arr)
-  return Math.sqrt(
-    arr.reduce((acc, v) => {
-      acc + (_mean - v) ** 2
-    }) / arr.length
-  )
-}
-
-function std_with_mean(arr, _mean) {
-  return Math.sqrt(
-    arr.reduce((acc, v) => {
-      acc + (_mean - v) ** 2
-    }) / arr.length
-  )
-}
-
-function detectPeaks(
-  y,
-  maxIdx = null,
-  lag = 20,
-  threshold = 5,
-  influence = 0.5
-) {
-  // Based on https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362
-  //
-  // Settings (the ones below are examples: choose what is best for your data)
-  // lag - lag the moving window
-  // threshold - standard deviations for signal
-  // influence - the influence (between 0 and 1) of new signals on the mean and standard deviation
-
-  maxIdx = maxIdx || y.length
-  const res = [] // Indices of peaks
-  const filteredY = y.slice(0, maxIdx) // Initialize filtered series
-
-  const avgFilter = new Uint8Array(maxIdx) // Initialize average filter
-  const stdFilter = new Uint8Array(maxIdx) // Initialize std. filter
-  const _window = y.slice(0, lag)
-  avgFilter[lag - 1] = mean(_window) // Initialize first value
-  stdFilter[lag - 1] = std(_window) // Initialize first value
-
-  const vThresh = max(y) / 3
-
-  for (i = lag; i < maxIdx; i++) {
-    if (Math.abs(y[i] - avgFilter[i - 1]) > threshold * stdFilter[i - 1]) {
-      if (y[i] > avgFilter[i - 1] && y[i] > vThresh) {
-        res.push(i)
-        //i += 10
-      }
-      filteredY[i] = influence * y[i] + (1 - influence) * filteredY[i - 1]
-    } else {
-      filteredY[i] = y[i]
-    }
-    const _window = filteredY.slice(i - lag, i)
-    avgFilter[i] = mean(_window)
-    stdFilter[i] = std_with_mean(_window, avgFilter[i])
-  }
-
-  // For a contiguous peak find its center
-  const peaks = []
-  let peakBegin = 0
-  let lastIdx = 0
-  for (let i = 1; i < res.length; i++) {
-    if (res[i] == res[i - 1] + 1) {
-      lastIdx = i
-    } else {
-      if (lastIdx === i - 1) {
-        const j = Math.round((res[lastIdx] + res[peakBegin]) / 2)
-        if (y[j] > vThresh) {
-          peaks.push(j)
-        }
-      }
-      peakBegin = i
-    }
-  }
-
-  return peaks
-}
-
 // Implementation of "Real-Time Chord Recognition For Live Performance", A. M. Stark and M. D. Plumbley. In Proceedings of the 2009 International Computer Music Conference (ICMC 2009), Montreal, Canada, 16-21 August 2009.
 
 /**
@@ -108,16 +7,16 @@ function detectPeaks(
  *
  * TODO: Make this more robust against lower notes in a chord
  */
-function findChromaVector(X, fs, L) {
+export function findChromaVector(X, fs, L) {
   // Square root the magnitude spectrum
   X = X.map((v) => Math.sqrt(v))
   const C = new Float32Array(12)
   const r = 2 // number of bins
 
   const _calc = (phi, h, n) => {
-    kp = kPrime(n, phi, h, fs, L)
-    k0 = kp - r * h
-    k1 = kp + r * h
+    const kp = kPrime(n, phi, h, fs, L)
+    const k0 = kp - r * h
+    const k1 = kp + r * h
     return Math.max(...X.slice(k0, k1))
   }
 
@@ -139,7 +38,7 @@ function kPrime(n, phi, h, fs, L) {
   return Math.round((f(n) * phi * h) / (fs / L))
 }
 
-fC3 = 130.81
+const fC3 = 130.81
 function f(n) {
   return fC3 * Math.pow(2, n / 12)
 }
@@ -239,7 +138,7 @@ const chordNames = Object.keys(allChords) // chordNames depends on allChords bei
  * a few chords are matched with delta = 0 (e.g. C7) since E and G are 0 in the inverted
  * bit mask of C7 (any any chord with notes E and G).
  */
-function bitMaskMatch(C) {
+export function bitMaskMatch(C) {
   const delta = new Float32Array(chordNames.length)
 
   for (let i = 0; i < chordNames.length; i++) {
