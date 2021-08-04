@@ -2,7 +2,8 @@
   import { onMount } from 'svelte'
   import { findChromaVector, bitMaskMatch } from './chordRecognition'
 
-  let canvas
+  import SpectrumVisualiser from './Components/SpectrumVisualiser.svelte'
+
   let running = false // global flag for audio on/off
 
   let detectedChord
@@ -13,25 +14,39 @@
   let thresh = 5
   let influence = 0.5
 
-  const fftSize = 16384 // window size for fft
+  const fftSize = 8192 // window size for fft
+  const freqBinCount = fftSize / 2
+
+  function calcFreqArr(Fres, len) {
+    const arr = new Uint16Array(freqBinCount)
+    for (let i = 0; i < len; i++) {
+      arr[i] = i * Fres
+    }
+    return arr
+  }
+
+  const dataArray = new Uint8Array(freqBinCount)
+
+  let Fs = 44100 // Assume 44.1kHz until we activate the Web Audio API
+  $: Fres = Fs / fftSize // Frequency resolution
+  $: freq2idx = (freq) => Math.round(freq / Fres)
+
+  // Constrain frequency to <1000 Hz for viz
+  $: maxVizIdx = freq2idx(1000)
+  $: plotY = dataArray.subarray(0, maxVizIdx)
+  $: freqArray = calcFreqArr(Fres, dataArray.length)
+  $: plotX = freqArray.subarray(0, maxVizIdx)
 
   function onSuccess(stream) {
     const audioCtx = new AudioContext()
+    Fs = audioCtx.sampleRate // audio sampling frequency
+    console.log(`Sampling frequency: ${Fs}Hz`)
+
     const analyser = audioCtx.createAnalyser()
     analyser.fftSize = fftSize
     analyser.minDecibels = -70
     const audioSrc = audioCtx.createMediaStreamSource(stream)
     audioSrc.connect(analyser)
-    const bufLen = analyser.frequencyBinCount
-    const dataArray = new Uint8Array(analyser.frequencyBinCount)
-
-    const Fs = audioCtx.sampleRate // audio sampling frequency
-    console.log(`Sampling frequency: ${Fs}Hz`)
-    const Fres = Fs / fftSize // Frequency resolution
-    const freq2idx = (freq) => Math.round(freq / Fres)
-
-    // Constrain frequency to <550 Hz
-    const maxIdx = freq2idx(550)
 
     let frame
 
@@ -42,11 +57,12 @@
       frame = requestAnimationFrame(loop)
       analyser.getByteFrequencyData(dataArray)
 
+      plotY = dataArray.subarray(0, maxVizIdx)
+
       // Calculate chroma vector
       const chromaVector = findChromaVector(dataArray, Fs, fftSize)
       if (chromaVector.reduce((prev, v) => prev + v) > 40) {
-        const matchedChord = bitMaskMatch(chromaVector)
-        detectedChord = matchedChord
+        detectedChord = bitMaskMatch(chromaVector)
       }
 
       /*// Find indices of peaks
@@ -67,7 +83,6 @@
   onMount(() => {})
 
   function toggleStartStop() {
-    console.log('WTF')
     if (running) {
       running = false
     } else {
@@ -109,16 +124,17 @@
       notes it got right. All processing is done in the browser and no data is
       sent anywhere.
     </p>
-    <br />
+
+    {#if running}
+      <button on:click={toggleStartStop}>stop</button>
+    {:else}
+      <button on:click={toggleStartStop}>start</button>
+    {/if}
+
+    <SpectrumVisualiser {plotX} {plotY} />
 
     <div class="row">
       <div id="buttons">
-        {#if running}
-          <button on:click={toggleStartStop}>stop</button>
-        {:else}
-          <button on:click={toggleStartStop}>start</button>
-        {/if}
-
         <label>
           Lag
           <input type="number" bind:value={lag} min="5" max="25" />
@@ -159,9 +175,7 @@
 
     <br />
 
-    <div class="row">
-      <canvas bind:this={canvas} id="canvas" class="visualizer" />
-    </div>
+    <div class="row" />
 
     <div class="row">
       <p>Chords: {detectedChord ? detectedChord : 'N/A'}</p>
