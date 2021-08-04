@@ -14,14 +14,6 @@
   --grey: #a2aabc;
 }
 
-@font-face {
-  font-family: 'Inconsolata';
-  font-style: normal;
-  font-weight: 400;
-  font-stretch: normal;
-  src: url(inconsolata.ttf) format('truetype');
-}
-
 body {
   font-family: 'Inconsolata', sans-serif;
   background-color: var(--bg);

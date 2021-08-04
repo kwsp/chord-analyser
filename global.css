@@ -1,5 +1,14 @@
+@font-face {
+  font-family: 'Inconsolata';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+  src: url(inconsolata.ttf) format('truetype');
+}
+
 html,
 body {
+  font-family: 'Inconsolata', sans-serif;
   position: relative;
   width: 100%;
   height: 100%;
