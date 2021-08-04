@@ -38,7 +38,7 @@
   }
 </script>
 
-<h2>Spectrum Visualiser</h2>
+<h3>Spectrum Visualiser</h3>
 
 <div class="chart" bind:clientWidth={width} bind:clientHeight={height}>
   <svg>
@@ -79,7 +79,7 @@
 
 <style>
   .chart,
-  h2,
+  h3,
   p {
     width: 100%;
     max-width: 500px;

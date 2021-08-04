@@ -1,11 +1,11 @@
-import * from "./maths.js"
+import { mean, max, std, std_with_mean } from './maths.js'
 
 export function detectPeaks(
   y,
-  maxIdx = null,
   lag = 20,
   threshold = 5,
-  influence = 0.5
+  influence = 0.5,
+  maxIdx = null
 ) {
   // Based on https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data/22640362#22640362
   //
@@ -26,7 +26,7 @@ export function detectPeaks(
 
   const vThresh = max(y) / 3
 
-  for (i = lag; i < maxIdx; i++) {
+  for (let i = lag; i < maxIdx; i++) {
     if (Math.abs(y[i] - avgFilter[i - 1]) > threshold * stdFilter[i - 1]) {
       if (y[i] > avgFilter[i - 1] && y[i] > vThresh) {
         res.push(i)

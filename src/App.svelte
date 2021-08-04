@@ -3,11 +3,15 @@
   import { findChromaVector, bitMaskMatch } from './chordRecognition'
 
   import SpectrumVisualiser from './Components/SpectrumVisualiser.svelte'
+  import Piano from './Components/Piano.svelte'
+  import ChromaPlot from './Components/Chroma.svelte'
+  import { detectPeaks } from './detectPeaks.js'
+  import { getNote } from './notes.js'
 
   let running = false // global flag for audio on/off
 
-  let detectedChord
-  let detectedNotes
+  let detectedChord = ''
+  let detectedNotes = ''
 
   // Peak detection params
   let lag = 11
@@ -16,6 +20,8 @@
 
   const fftSize = 8192 // window size for fft
   const freqBinCount = fftSize / 2
+
+  let chromaVector
 
   function calcFreqArr(Fres, len) {
     const arr = new Uint16Array(freqBinCount)
@@ -60,23 +66,22 @@
       plotY = dataArray.subarray(0, maxVizIdx)
 
       // Calculate chroma vector
-      const chromaVector = findChromaVector(dataArray, Fs, fftSize)
+      chromaVector = findChromaVector(dataArray, Fs, fftSize)
       if (chromaVector.reduce((prev, v) => prev + v) > 40) {
         detectedChord = bitMaskMatch(chromaVector)
       }
 
-      /*// Find indices of peaks
+      // Find indices of peaks
       const peakIdx = detectPeaks(
         dataArray,
-        maxIdx,
         lag,
         thresh,
-        influence
+        influence,
+        maxVizIdx
       ).slice(0, 7) // Limit to the bottom 7 peaks
 
       // Convert indices to notes and deduplicate
-      const notes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
-      detectedNotes = notes*/
+      detectedNotes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
     }
     frame = requestAnimationFrame(loop)
   }
@@ -112,11 +117,9 @@
 
 <main>
   <div class="container">
-    <div class="row">
-      <h1>
-        <a href="https://kwsp.github.io/chord-analyser/">Chord Analyser</a>
-      </h1>
-    </div>
+    <h1>
+      <a href="https://kwsp.github.io/chord-analyser/">Chord Analyser</a>
+    </h1>
 
     <p>
       Press "A" or the "start" button to toggle the chord analyser. Try to play
@@ -126,75 +129,57 @@
     </p>
 
     {#if running}
-      <button on:click={toggleStartStop}>stop</button>
+      <button on:click={toggleStartStop}><b>Stop</b></button>
     {:else}
-      <button on:click={toggleStartStop}>start</button>
+      <button on:click={toggleStartStop}><b>Start</b></button>
     {/if}
+    <span class="chordBox" style="width: 8em;">
+      <b>Chord:</b>
+      {detectedChord ? detectedChord : 'N/A'}
+    </span>
+    <span class="notesBox">
+      <b>Notes:</b>
+      {detectedNotes ? detectedNotes : 'N/A'}
+    </span>
 
     <SpectrumVisualiser {plotX} {plotY} />
+    <ChromaPlot points={chromaVector} />
 
-    <div class="row">
-      <div id="buttons">
-        <label>
-          Lag
-          <input type="number" bind:value={lag} min="5" max="25" />
-          <input type="range" bind:value={lag} min="5" max="25" />
-        </label>
+    <!--
+    <label>
+      Lag
+      <input type="number" bind:value={lag} min="5" max="25" />
+      <input type="range" bind:value={lag} min="5" max="25" />
+    </label>
 
-        <label>
-          Thresh
-          <input
-            type="number"
-            bind:value={thresh}
-            min="3"
-            max="15"
-            step="0.5"
-          />
-          <input type="range" bind:value={thresh} min="3" max="15" step="0.5" />
-        </label>
+    <label>
+      Thresh
+      <input type="number" bind:value={thresh} min="3" max="15" step="0.5" />
+      <input type="range" bind:value={thresh} min="3" max="15" step="0.5" />
+    </label>
 
-        <label>
-          Influence
-          <input
-            type="number"
-            bind:value={influence}
-            min="0"
-            max="1"
-            step="0.1"
-          />
-          <input
-            type="range"
-            bind:value={influence}
-            min="0"
-            max="1"
-            step="0.1"
-          />
-        </label>
-      </div>
-    </div>
-
-    <br />
-
-    <div class="row" />
-
-    <div class="row">
-      <p>Chords: {detectedChord ? detectedChord : 'N/A'}</p>
-      <p>Notes: {detectedNotes ? detectedNotes : 'N/A'}</p>
-    </div>
+    <label>
+      Influence
+      <input type="number" bind:value={influence} min="0" max="1" step="0.1" />
+      <input type="range" bind:value={influence} min="0" max="1" step="0.1" />
+    </label>
+    -->
 
     <p>
-      This app attempts to distinguish between the notes you are playing by 1.
-      transforming the audio to the frequency domain via FFT, 2. detecting the
-      peaks, 3. matching each peak to the closest note in the chromatic scale.
-    </p>
-    <p>
-      I've always wanted something like this to analyze the sounds I hear when I
-      don't have my guitar with me (unfortunately I don't have perfect pitch),
-      and I hacked this web app together in a weekend. It is not perfect - some
-      notes might be off by a semitone, and strong overtones will be picked up.
-      If you have ideas for improvement, please let me know.
+      This app attempts to figure out the musical chord and notes you are
+      playing. It uses the Web Audio API to access the microphone and calculate
+      the discrete fourier transform (DFT) of the signal.
     </p>
 
     <a href="https://github.com/kwsp/chord-analyser/">Github</a>
   </div>
 </main>
+
+<style>
+  .chordBox {
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 0.4em;
+    display: inline-block;
+  }
+</style>
