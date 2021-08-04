@@ -122,10 +122,8 @@
     </h1>
 
     <p>
-      Press "A" or the "start" button to toggle the chord analyser. Try to play
-      a chord on the guitar or piano, pause the app right after and see how many
-      notes it got right. All processing is done in the browser and no data is
-      sent anywhere.
+      Press "Start" to toggle the mic. Try to play a chord on the guitar or
+      piano and see if it got the chords and notes right.
     </p>
 
     {#if running}
@@ -166,9 +164,28 @@
     -->
 
     <p>
-      This app attempts to figure out the musical chord and notes you are
-      playing. It uses the Web Audio API to access the microphone and calculate
-      the discrete fourier transform (DFT) of the signal.
+      This web app listens on the microphone and attempts to figure out the
+      musical chords and notes you are playing on an instrument (e.g. guitar or
+      piano). It first transforms the audio to the frequency domain via FFT with
+      the Web Audio API's
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode">
+        AnalyserNode
+      </a>. To figure out the chords, it calculates the Chromagram from the
+      power spectrum and matches the chromagram to a set of precomputed chord
+      masks<a href="#ref1"><sup>1</sup></a>. To find the specific notes played,
+      it looks for the peaks in the power spectrum and then find the closest
+      chromatic note each peak frequency corresponds to via a binary nearest
+      neighbour search.
+    </p>
+    <p>All processing is done in the browser and no data is sent anywhere.</p>
+
+    References:
+    <p class="references">
+      <span id="ref1">
+        1. "Real-Time Chord Recognition For Live Performance", A. M. Stark and
+        M. D. Plumbley. In Proceedings of the 2009 International Computer Music
+        Conference (ICMC 2009), Montreal, Canada, 16-21 August 2009.
+      </span>
     </p>
 
     <a href="https://github.com/kwsp/chord-analyser/">Github</a>
@@ -176,10 +193,19 @@
 </main>
 
 <style>
+  main {
+    max-width: 700px;
+    margin: auto;
+    padding-bottom: 1em;
+  }
+
   .chordBox {
     border: 1px solid #ccc;
     border-radius: 2px;
     padding: 0.4em;
     display: inline-block;
+  }
+  .references {
+    margin-left: 1.5em;
   }
 </style>

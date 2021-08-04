@@ -11,7 +11,7 @@ export function findChromaVector(X, fs, L) {
   // Square root the magnitude spectrum
   X = X.map((v) => Math.sqrt(v))
   const C = new Float32Array(12)
-  const r = 2 // number of bins
+  const r = 1 // number of bins
 
   const _calc = (phi, h, n) => {
     const kp = kPrime(n, phi, h, fs, L)
