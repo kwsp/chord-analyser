@@ -153,10 +153,6 @@ export function bitMaskMatch(C) {
   }
 
   const idx = argMin(delta)
-  if (idx === 0) {
-    console.log(delta)
-    //debugger
-  }
   return chordNames[idx]
 }
 

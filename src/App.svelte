@@ -1,14 +1,12 @@
 <script>
-  import { onMount } from 'svelte'
-  import { findChromaVector, bitMaskMatch } from './chordRecognition'
-
   import SpectrumVisualiser from './Components/SpectrumVisualiser.svelte'
-  import Piano from './Components/Piano.svelte'
   import ChromaPlot from './Components/Chroma.svelte'
+  import { findChromaVector, bitMaskMatch } from './chordRecognition'
   import { detectPeaks } from './detectPeaks.js'
   import { getNote } from './notes.js'
 
   let running = false // global flag for audio on/off
+  let screenWidth // Bound to screen's innerWidth
 
   let detectedChord = ''
   let detectedNotes = ''
@@ -85,7 +83,6 @@
     }
     frame = requestAnimationFrame(loop)
   }
-  onMount(() => {})
 
   function toggleStartStop() {
     if (running) {
@@ -113,7 +110,7 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleKeyDown} bind:innerWidth={screenWidth} />
 
 <main>
   <div class="container">
@@ -135,6 +132,9 @@
       <b>Chord:</b>
       {detectedChord ? detectedChord : 'N/A'}
     </span>
+    {#if screenWidth < 500}
+      <br />
+    {/if}
     <span class="notesBox">
       <b>Notes:</b>
       {detectedNotes ? detectedNotes : 'N/A'}
@@ -195,7 +195,7 @@
 <style>
   main {
     max-width: 700px;
-    margin: auto;
+    margin: 0 auto;
     padding-bottom: 1em;
   }
 

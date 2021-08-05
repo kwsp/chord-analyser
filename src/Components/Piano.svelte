@@ -2,7 +2,6 @@
   let width = 500
   let height = 200
 
-  const nWhiteKeys = 7
   const scale = 2
 
   // Piano key dimensions from http://www.quadibloc.com/other/cnv05.htm

@@ -32,10 +32,6 @@
 
   $: path = calcPath(plotX, plotY)
   $: area = `${path}L${xScale(maxX)},${yScale(0)}L${xScale(minX)},${yScale(0)}Z`
-
-  function formatMobile(tick) {
-    return "'" + tick.toString().slice(-2)
-  }
 </script>
 
 <h3>Spectrum Visualiser</h3>
@@ -64,7 +60,7 @@
         >
           <line y1="-{height}" y2="-{padding.bottom}" x1="0" x2="0" />
           <text y="-2">
-            {width > 380 ? tick : formatMobile(tick)}
+            {tick}
             {idx === xTicks.length - 1 ? ' Hz' : ''}
           </text>
         </g>
