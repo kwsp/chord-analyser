@@ -16,14 +16,14 @@
   let thresh = 5
   let influence = 0.5
 
-  const fftSize = 8192 // window size for fft
+  const fftSize = 8192 * 2 // window size for fft
   const freqBinCount = fftSize / 2
 
   let chromaVector
 
-  function calcFreqArr(Fres, len) {
+  function calcFreqArr(Fres) {
     const arr = new Uint16Array(freqBinCount)
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < freqBinCount; i++) {
       arr[i] = i * Fres
     }
     return arr
@@ -38,7 +38,7 @@
   // Constrain frequency to <1000 Hz for viz
   $: maxVizIdx = freq2idx(1000)
   $: plotY = dataArray.subarray(0, maxVizIdx)
-  $: freqArray = calcFreqArr(Fres, dataArray.length)
+  $: freqArray = calcFreqArr(Fres)
   $: plotX = freqArray.subarray(0, maxVizIdx)
 
   function onSuccess(stream) {
@@ -56,7 +56,7 @@
       if (!running) {
         return
       }
-      frame = requestAnimationFrame(loop)
+      requestAnimationFrame(loop)
       analyser.getByteFrequencyData(dataArray)
 
       plotY = dataArray.subarray(0, maxVizIdx)
@@ -74,12 +74,12 @@
         thresh,
         influence,
         maxVizIdx
-      ).slice(0, 7) // Limit to the bottom 7 peaks
+      ).slice(0, 8) // Limit to the bottom n peaks
 
       // Convert indices to notes and deduplicate
       detectedNotes = [...new Set(peakIdx.map((idx) => getNote(idx * Fres)))]
     }
-    frame = requestAnimationFrame(loop)
+    requestAnimationFrame(loop)
   }
 
   function toggleStartStop() {

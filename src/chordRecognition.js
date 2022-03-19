@@ -1,4 +1,5 @@
 // Implementation of "Real-Time Chord Recognition For Live Performance", A. M. Stark and M. D. Plumbley. In Proceedings of the 2009 International Computer Music Conference (ICMC 2009), Montreal, Canada, 16-21 August 2009.
+import { argMin } from './maths'
 
 /**
  * @param X Array magnitude spectrum
@@ -10,19 +11,26 @@
 export function findChromaVector(X, fs, L) {
   // Square root the magnitude spectrum
   X = X.map((v) => Math.sqrt(v))
-  const C = new Float32Array(12)
-  const r = 1 // number of bins
 
-  const _calc = (phi, h, n) => {
-    const kp = kPrime(n, phi, h, fs, L)
+  const fC = 130.81 // C3
+  const _calc = (n, phi, h) => {
+    const r = 1 // number of bins
+    const kp = kPrime(n, phi, h, fs, L, fC)
     const k0 = kp - r * h
     const k1 = kp + r * h
     return Math.max(...X.slice(k0, k1))
   }
 
+  const C = new Float32Array(12)
   for (let i = 0; i < 12; i++) {
-    C[i] =
-      _calc(1, 1, i) + _calc(2, 1, i) + (_calc(1, 2, i) + _calc(2, 2, i)) / 2
+    // No. of notes in an octave
+    for (let phi = 1; phi <= 2; phi++) {
+      // No. of octaves to consider
+      for (let h = 1; h <= 2; h++) {
+        // No. of the harmonic
+        C[i] += _calc(i, phi, h)
+      }
+    }
   }
 
   return C
@@ -33,14 +41,9 @@ export function findChromaVector(X, fs, L) {
  * @param phi int number of octaves to consider
  * @param h int number of the harmonic
  */
-function kPrime(n, phi, h, fs, L) {
+function kPrime(n, phi, h, fs, L, fC) {
   // TODO: use precomputed frequencies rather than calling f()
-  return Math.round((f(n) * phi * h) / (fs / L))
-}
-
-const fC3 = 130.81
-function f(n) {
-  return fC3 * Math.pow(2, n / 12)
+  return Math.round((fC * Math.pow(2, n / 12) * phi * h) / (fs / L))
 }
 
 // Variations of all C chords
@@ -92,20 +95,6 @@ function generateAllChords() {
   // Returns
   const allChords = {}
 
-  //let root = 'C'
-  //for (const name of names) {
-  //const chordName = name === 'maj' ? root : root + name
-  //const bitMask = new Uint8Array(allCChords[name])
-  //const invertedMask = bitMask.map((v) => (v ? 0 : 1))
-  //const nNotes = bitMask.reduce((a, v) => (v ? a + 1 : a))
-
-  //allChords[chordName] = {
-  //bitMask: bitMask,
-  //invertedMask: invertedMask,
-  //nNotes: nNotes,
-  //}
-  //}
-
   for (let n = 0; n < notes.length; n++) {
     const root = notes[n]
     for (const name of names) {
@@ -154,16 +143,4 @@ export function bitMaskMatch(C) {
 
   const idx = argMin(delta)
   return chordNames[idx]
-}
-
-function argMin(arr) {
-  let min = arr[0]
-  let minIdx = 0
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] < min) {
-      min = arr[i]
-      minIdx = i
-    }
-  }
-  return minIdx
 }

@@ -1,4 +1,4 @@
-import { mean, max, std, std_with_mean } from './maths.js'
+import { mean, max, std, std_with_mean } from './maths'
 
 export function detectPeaks(
   y,

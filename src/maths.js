@@ -32,3 +32,15 @@ export function std_with_mean(arr, _mean) {
     }) / arr.length
   )
 }
+
+export function argMin(arr) {
+  let min = arr[0]
+  let minIdx = 0
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < min) {
+      min = arr[i]
+      minIdx = i
+    }
+  }
+  return minIdx
+}
