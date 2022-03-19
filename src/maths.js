@@ -1,9 +1,5 @@
 export function sum(arr) {
-  let res = arr[0]
-  for (let i = 1; i < arr.length; i++) {
-    res += arr[i]
-  }
-  return res
+  return arr.reduce((acc, curr) => acc + curr, 0)
 }
 
 export function mean(arr) {

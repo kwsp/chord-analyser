@@ -92,22 +92,22 @@ function generateAllChords() {
   // Returns
   const allChords = {}
 
-  let root = 'C'
-  for (const name of names) {
-    const chordName = name === 'maj' ? root : root + name
-    const bitMask = new Uint8Array(allCChords[name])
-    const invertedMask = bitMask.map((v) => (v ? 0 : 1))
-    const nNotes = bitMask.reduce((a, v) => (v ? a + 1 : a))
+  //let root = 'C'
+  //for (const name of names) {
+  //const chordName = name === 'maj' ? root : root + name
+  //const bitMask = new Uint8Array(allCChords[name])
+  //const invertedMask = bitMask.map((v) => (v ? 0 : 1))
+  //const nNotes = bitMask.reduce((a, v) => (v ? a + 1 : a))
 
-    allChords[chordName] = {
-      bitMask: bitMask,
-      invertedMask: invertedMask,
-      nNotes: nNotes,
-    }
-  }
+  //allChords[chordName] = {
+  //bitMask: bitMask,
+  //invertedMask: invertedMask,
+  //nNotes: nNotes,
+  //}
+  //}
 
-  for (let n = 1; n < notes.length; n++) {
-    root = notes[n]
+  for (let n = 0; n < notes.length; n++) {
+    const root = notes[n]
     for (const name of names) {
       const chordName = name === 'maj' ? root : root + name
       const bitMask = rightShift(allCChords[name], n)
@@ -136,7 +136,7 @@ const chordNames = Object.keys(allChords) // chordNames depends on allChords bei
  * TODO: currently we minimize delta for the inverted mask as per Stark et al.
  * However, when playing a pair of notes such as E and G, which should match Em,
  * a few chords are matched with delta = 0 (e.g. C7) since E and G are 0 in the inverted
- * bit mask of C7 (any any chord with notes E and G).
+ * bit mask of C7 (and any chord with notes E and G).
  */
 export function bitMaskMatch(C) {
   const delta = new Float32Array(chordNames.length)

@@ -52,8 +52,6 @@
     const audioSrc = audioCtx.createMediaStreamSource(stream)
     audioSrc.connect(analyser)
 
-    let frame
-
     const loop = () => {
       if (!running) {
         return
@@ -128,6 +126,7 @@
     {:else}
       <button on:click={toggleStartStop}><b>Start</b></button>
     {/if}
+
     <span class="chordBox" style="width: 8em;">
       <b>Chord:</b>
       {detectedChord ? detectedChord : 'N/A'}
